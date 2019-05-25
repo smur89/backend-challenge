@@ -1,4 +1,4 @@
-package controllers.posts
+package model
 
 import play.api.libs.json.{Format, Json}
 

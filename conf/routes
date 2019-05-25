@@ -3,9 +3,6 @@
 # https://www.playframework.com/documentation/latest/ScalaRouting
 # ~~~~
 
-# An example controller showing a sample home page
-GET     /                           controllers.HomeController.index
-
 # The API routes
 GET     /api/v1/posts               controllers.posts.PostsController.readAll
 POST    /api/v1/posts               controllers.posts.PostsController.create
