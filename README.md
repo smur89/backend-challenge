@@ -29,7 +29,7 @@ You can send requests for example with a tool like [httpie](https://httpie.org/)
 
 ## The task
 
-We need an API with which we can mange the posts for our blog. A post consist of an id (Integer), title (String) and body (String). We need CRUD operations on this resource with the following endpoints:
+We need an API with which we can manage the posts for our blog. A post consists of an id (Integer), title (String) and body (String). We need CRUD operations on this resource with the following endpoints:
 
  - `GET     api/v1/posts      // Returns all blog posts`
  - `POST    api/v1/posts      // Create a new blog post`
