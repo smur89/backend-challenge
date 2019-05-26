@@ -25,27 +25,31 @@ class PostRepositoryTest extends AsyncWordSpec with Matchers {
       }
 
       "perform 0 operations if the post doesn't exist" in {
-        repo.delete(-1).map(_ shouldBe 0)
+        repo.delete(-1)
+          .map(_ shouldBe 0)
       }
     }
 
     "updating a post" should {
+      val updatedBody = "Updated!"
+
       "perform 1 operation if the post exists" in {
         val id = 2
         for {
           beforeUpdate <- repo.find(id)
-          updateOps <- repo.update(id, Post(id, "ZyseMe", "Updated!"))
+          updateOps <- repo.update(id, Post(id, "ZyseMe", updatedBody))
           afterUpdate <- repo.find(id)
         } yield {
-          beforeUpdate.map(_.body) should not be Some("Updated!")
+          beforeUpdate.map(_.body) should not be Some(updatedBody)
           updateOps shouldBe 1
-          afterUpdate.map(_.body) shouldBe Some("Updated!")
+          afterUpdate.map(_.body) shouldBe Some(updatedBody)
         }
       }
 
       "perform 0 operations if the post exists" in {
         val id = -1
-        repo.update(id, Post(id, "ZyseMe", "Updated!")).map(_ shouldBe 0)
+        repo.update(id, Post(id, "ZyseMe", updatedBody))
+          .map(_ shouldBe 0)
       }
     }
   }

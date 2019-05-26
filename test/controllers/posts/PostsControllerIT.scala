@@ -1,6 +1,6 @@
 package controllers.posts
 
-import model.{MessageResponse, Post}
+import model.{DataResponse, MessageResponse, Post}
 import org.scalatest.{Matchers, TestSuite, WordSpec}
 import org.scalatestplus.play.WsScalaTestClient
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
@@ -18,15 +18,15 @@ class PostsControllerIT extends WordSpec with TestSuite with Matchers with Guice
   "A PostsController" when {
 
     "Reading all posts" should {
-
       val getAllUrl = "/api/v1/posts"
 
       "return the Posts in ascending order on the ids" in {
         val response = await(wsUrl(getAllUrl).get())
-        val posts = Json.parse(response.body).as[Seq[Post]]
+        val posts = Json.parse(response.body).as[DataResponse[Seq[Post]]]
 
-        response.status shouldBe 200
-        posts match {
+        response.status shouldBe OK
+        posts.status shouldBe OK
+        posts.data match {
           case head +: second +: _ =>
             head.id shouldBe 1
             second.id shouldBe 2
@@ -35,15 +35,16 @@ class PostsControllerIT extends WordSpec with TestSuite with Matchers with Guice
     }
 
     "reading a single post" should {
-      def getByIdUrl(id: Int = 1) = s"/api/v1/posts/$id"
+      def getByIdUrl(id: Int) = s"/api/v1/posts/$id"
 
       "return only the post with the matching id" in {
         val id = 1
         val response = await(wsUrl(getByIdUrl(id)).get())
-        val post = Json.parse(response.body).as[Post]
+        val post = Json.parse(response.body).as[DataResponse[Post]]
 
         response.status shouldBe OK
-        post.id shouldBe id
+        post.status shouldBe OK
+        post.data.id shouldBe id
       }
 
       "returns a 404 with a json MessageResponse if the post does not exist" in {
@@ -57,22 +58,24 @@ class PostsControllerIT extends WordSpec with TestSuite with Matchers with Guice
     }
 
     "creating a new post" should {
-      def createUrl = "/api/v1/posts"
+      val createUrl = "/api/v1/posts"
 
       "fail if there is already a Post with the same id present." in {
         val post = Post(1, "ZyseMe", "Test Post")
         val response = await(wsUrl(createUrl).post(Json.toJson(post)))
+
         response.status shouldBe CONFLICT
       }
 
       "save a post into the persistance layer returning the created Post and the id in the location header" in {
         val post = Post(999, "ZyseMe", "Test Post")
         val response = await(wsUrl(createUrl).post(Json.toJson(post)))
-        val postResponse = Json.parse(response.body).as[Post]
+        val postResponse = Json.parse(response.body).as[DataResponse[Post]]
 
         response.status shouldBe CREATED
+        postResponse.status shouldBe CREATED
         response.header(LOCATION) shouldBe Some(post.id.toString)
-        postResponse shouldBe post
+        postResponse.data shouldBe post
       }
     }
 
@@ -84,6 +87,7 @@ class PostsControllerIT extends WordSpec with TestSuite with Matchers with Guice
 
         response.status shouldBe NO_CONTENT
       }
+
       "return NOT_FOUND if post doesn't exist" in {
         val response = await(wsUrl(deleteUrl(-1)).delete())
 

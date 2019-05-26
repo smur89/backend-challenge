@@ -3,7 +3,7 @@ package controllers.posts
 import controllers.posts.PostsController._
 import javax.inject.Inject
 import model.exceptions.DuplicateIdException
-import model.{MessageResponse, Post}
+import model.{DataResponse, MessageResponse, Post}
 import play.api.Logging
 import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc._
@@ -27,7 +27,7 @@ class PostsController @Inject()(
       },
       post => {
         postRepository.insert(post).map(persisted =>
-          Created(Json.toJson(persisted)).withHeaders((LOCATION, persisted.id.toString)))
+          Created(Json.toJson(DataResponse(CREATED, persisted))).withHeaders((LOCATION, persisted.id.toString)))
           .recover {
             case e: DuplicateIdException =>
               logger.error(e.message)
@@ -40,14 +40,13 @@ class PostsController @Inject()(
 
   def readAll(): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
     postRepository.findAll.map { posts =>
-      val json = Json.toJson(posts.sortBy(_.id))
-      Ok(json)
+      Ok(Json.toJson(DataResponse(OK, posts.sortBy(_.id))))
     }.recover { case _ => InternalServerError }
   }
 
   def readSingle(id: Int): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
     postRepository.find(id).map {
-      case Some(post) => Ok(Json.toJson(post))
+      case Some(post) => Ok(Json.toJson(DataResponse(OK, post)))
       case _ => NotFound(Json.toJson(MessageResponse(NOT_FOUND, PostNotFoundMessage)))
     }.recover { case _ => InternalServerError }
   }
